@@ -158,9 +158,6 @@ def estimate_learning(train_plans, test_plans):
     model = YourModel(input_layers)
     model.init_weights()
 
-    # model = LSTM_Model(input_size=input_layers,hidden_size=128,num_layers=1,output_size=1)
-    # model.init_weights()
-
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
     # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)  # 设置学习率下降策略
@@ -232,26 +229,6 @@ def estimate_learning(train_plans, test_plans):
     return train_est_times, train_act_times, test_est_times, test_act_times
 
 
-# if __name__ == '__main__':
-#     query = "SELECT /*+ HASH_AGG() */ production_year, count(*) FROM imdb.title WHERE episode_nr>=143 AND episode_nr<=213 GROUP BY production_year"
-#     plan = [
-#         "id\testRows\testCost\tactRows\ttask\taccess object\texecution info\toperator info\tmemory\tdisk",
-#         "Projection_5\t60.00\t1481164061.06\t60\troot\t\ttime:1.72s, loops:2, Concurrency:OFF\timdb.title.production_year, Column#13, row_size: 16\t1.25 KB\tN/A",
-#         "└─HashAgg_13\t60.00\t1481162255.06\t60\troot\t\ttime:1.72s, loops:2\tgroup by:imdb.title.production_year, funcs:count(Column#15)->Column#13, funcs:firstrow(imdb.title.production_year)->imdb.title.production_year, row_size: 16\t14.5 KB\t0 Bytes",
-#         "  └─IndexReader_14\t60.00\t1481160274.94\t60\troot\t\ttime:1.72s, loops:2, cop_task: {num: 3, max: 772.8ms, min: 372.7ms, avg: 574.5ms, p95: 772.8ms, max_proc_keys: 1113190, p95_proc_keys: 1113190, tot_proc: 1.72s, rpc_num: 3, rpc_time: 1.72s, copr_cache: disabled}\tindex:HashAgg_6, row_size: 16\t1.32 KB\tN/A",
-#         "    └─HashAgg_6\t60.00\t1481156354.94\t60\tcop[tikv]\t\ttikv_task:{proc max:768ms, min:367ms, p80:768ms, p95:768ms, iters:2471, tasks:3}, scan_detail: {total_process_keys: 2528312, total_process_keys_size: 161811968, total_keys: 2528317, rocksdb: {delete_skipped_count: 3, key_skipped_count: 2612806, block: {cache_hit_count: 1595, read_count: 0, read_byte: 0 Bytes}}}\tgroup by:imdb.title.production_year, funcs:count(1)->Column#15, row_size: 16\tN/A\tN/A",
-#         "      └─Selection_12\t31121.00\t1480222724.88\t31121\tcop[tikv]\t\ttikv_task:{proc max:767ms, min:367ms, p80:767ms, p95:767ms, iters:2471, tasks:3}\tge(imdb.title.episode_nr, 143), le(imdb.title.episode_nr, 213), row_size: 48\tN/A\tN/A",
-#         "        └─IndexFullScan_11\t2528312.00\t1404373364.88\t2528312\tcop[tikv]\ttable:title, index:idx2(kind_id, production_year, episode_nr)\ttikv_task:{proc max:738ms, min:347ms, p80:738ms, p95:738ms, iters:2471, tasks:3}\tkeep order:false, row_size: 48\tN/A\tN/A"
-#     ]
-#
-#     p = Plan.parse_plan(query, plan)
-#     plan = PlanFeatureCollector()
-#     num = count_operator_num(p.root)
-#     vec = plan.walk_operator_tree(p.root)
-#
-#     print(vec)
-
-
 if __name__ == '__main__':
     train_json_file = 'data/train_plans_serial.json'  # serial
     test_json_file = 'data/train_plans_serial.json'
@@ -275,7 +252,7 @@ if __name__ == '__main__':
 
     print("done")
 
-# _, _, est_learning_costs, act_learning_times = estimate_learning(train_plans, test_plans)
+    _, _, est_learning_costs, act_learning_times = estimate_learning(train_plans, test_plans)
 
 # print(est_learning_costs[:10])
 # print(act_learning_times[:10])

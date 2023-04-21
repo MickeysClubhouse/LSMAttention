@@ -6,14 +6,17 @@ from collections import deque
 import numpy as np
 import pandas as pd
 import torch
+from plan import Plan, Operator
 from torch.utils.data import Dataset
+from sklearn import preprocessing
+from util import Normalizer
 
-from .database_util import *
-from .database_util import formatFilter, formatJoin, TreeNode, filterDict2Hist
+from database_util import *
+from database_util import formatFilter, formatJoin, TreeNode, filterDict2Hist
 
 
 class PlanTreeDataset(Dataset):
-    def __init__(self, json_df: pd.DataFrame, train: pd.DataFrame, encoding, hist_file, card_norm, cost_norm,
+    def __init__(self, json_df, train: pd.DataFrame, encoding, hist_file, card_norm, cost_norm,
                  to_predict, table_sample):
 
         # final features: embed(operator,join,table,predicate,histogram,sample)
@@ -24,8 +27,8 @@ class PlanTreeDataset(Dataset):
         self.length = len(json_df)
         # train = train.loc[json_df['id']]
 
-        nodes = [json.loads(plan)['Plan'] for plan in json_df['json']]  # root nodes
-        self.cards = [node['Actual Rows'] for node in nodes]  # total rows for plans
+        nodes = [plan.root for plan in json_df]  # root nodes
+        self.cards = [node['acc_rows'] for node in nodes]  # total rows for plans
         self.costs = [json.loads(plan)['Execution Time'] for plan in json_df['json']]  # total cost for plans
 
         # normalize the labels (log of e) with min-max
@@ -220,7 +223,21 @@ def node2feature(node, encoding, hist_file, table_sample):
     return np.concatenate((type_join, filts, mask, hists, table, sample))
 
 
+##############  new codespace  ####################
+def get_operator_enc_dict(operators):
+    operators_x = np.array(operators).reshape(len(operators), 1)
+    enc = preprocessing.OneHotEncoder()
+    operator_enc = enc.fit_transform(operators_x).toarray()
+    result_dict = {}
+    for index, item in enumerate(operators):
+        result_dict[item] = list(operator_enc[index])
+    return result_dict
+
+
 if __name__ == '__main__':
+    operators = ["Projection", "Selection", "Sort", "HashAgg", "HashJoin", "TableScan", "IndexScan", "TableReader",
+                 "IndexReader", "IndexLookUp", "IndexHashJoin"]
+
     train_json_file = 'data/train_plans_serial.json'  # serial
     test_json_file = 'data/train_plans_serial.json'
     train_plans, test_plans = [], []
@@ -235,4 +252,17 @@ if __name__ == '__main__':
     for case in test_cases:
         test_plans.append(Plan.parse_plan(case['query'], case['plan']))
 
-    train_ds = PlanTreeDataset(full_train_df, None, encoding, hist_file, card_norm, cost_norm, to_predict, table_sample)
+    operators_enc_dict = get_operator_enc_dict(operators)
+
+    # old
+    data_path = "data/"
+    hist_file = get_hist_file(data_path + 'histogram_string.csv')
+    cost_norm = Normalizer(-3.61192, 12.290855)
+    card_norm = Normalizer(1, 100)
+    to_predict = 'cost'
+
+    imdb_path = './imdb/'
+    table_sample = get_job_table_sample(imdb_path + 'train')
+
+    train_ds = PlanTreeDataset(train_plans, None, operators_enc_dict, hist_file, card_norm, cost_norm, to_predict,
+                               table_sample)  # 改了train_cases
