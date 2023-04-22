@@ -31,8 +31,8 @@ class PlanTreeDataset(Dataset):
         self.cards = [int(node.act_rows) for node in nodes]  # total rows for plans
         self.costs = [self.extract_exec_time(node.exec_info) for node in nodes]  # total cost for plans
 
-        card_norm=Normalizer(min(self.cards),max(self.cards))
-        cost_norm=Normalizer(min(self.costs),max(self.costs))
+        card_norm = Normalizer(min(self.cards), max(self.cards))
+        cost_norm = Normalizer(min(self.costs), max(self.costs))
 
         # normalize the labels (log of e) with min-max
         self.card_labels = torch.from_numpy(card_norm.normalize_labels(self.cards))
@@ -51,14 +51,14 @@ class PlanTreeDataset(Dataset):
         else:
             raise Exception('Unknown to_predict type')
 
-        idxs = list(range(1, len(nodes)+1))
+        idxs = list(range(1, len(nodes) + 1))
 
         self.treeNodes = []  ## for mem collection
 
         self.collated_dicts = [self.js_node2dict(i, node) for i, node in
                                zip(idxs, nodes)]  # encode training data one by one
 
-    def extract_exec_time(self,time_str):
+    def extract_exec_time(self, time_str):
         # 定义正则表达式，匹配时间字段和值
         pattern = r'time:\s*(\d+(\.\d+)?)(µs|ms|s)'
 
@@ -182,16 +182,16 @@ class PlanTreeDataset(Dataset):
 
         self.treeNodes.append(root)
 
-        if 'Relation Name' in plan:
-            root.table = plan['Relation Name']
+        if nodeType in ["IndexRangeScan", "TableRowIDScan", "TableFullScan"]:
+            root.table = plan.acc_obj
             root.table_id = encoding.encode_table(plan['Relation Name'])
         root.query_id = idx
 
         root.feature = node2feature(root, encoding, self.hist_file, self.table_sample)  # 'encoding' is the dict
         #    print(root)
-        if 'Plans' in plan:
-            for subplan in plan['Plans']:
-                subplan['parent'] = plan
+        if len(plan.children) > 0:
+            for subplan in plan.children:
+                subplan.parent = plan
                 node = self.traversePlan(subplan, idx, encoding)
                 node.parent = root
                 root.addChild(node)
@@ -325,7 +325,7 @@ if __name__ == '__main__':
         'NA': 20
     }
 
-    encoding=Encoding(min_max,col2idx)
+    encoding = Encoding(min_max, col2idx)
 
     # old
     data_path = "data/"

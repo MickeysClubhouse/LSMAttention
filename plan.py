@@ -12,6 +12,8 @@ class Operator:
         self.disk = disk
         self.children = []
 
+        self.parent=None
+
     def contain_index_lookup(self):
         if self.is_index_lookup():
             return True
