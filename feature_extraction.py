@@ -2,7 +2,7 @@ import json
 import os
 import sys
 from collections import deque
-
+import re
 import numpy as np
 import pandas as pd
 import torch
@@ -16,7 +16,7 @@ from database_util import formatFilter, formatJoin, TreeNode, filterDict2Hist
 
 
 class PlanTreeDataset(Dataset):
-    def __init__(self, json_df, train: pd.DataFrame, encoding, hist_file, card_norm, cost_norm,
+    def __init__(self, json_df, train: pd.DataFrame, encoding, hist_file,
                  to_predict, table_sample):
 
         # final features: embed(operator,join,table,predicate,histogram,sample)
@@ -28,8 +28,11 @@ class PlanTreeDataset(Dataset):
         # train = train.loc[json_df['id']]
 
         nodes = [plan.root for plan in json_df]  # root nodes
-        self.cards = [node['acc_rows'] for node in nodes]  # total rows for plans
-        self.costs = [json.loads(plan)['Execution Time'] for plan in json_df['json']]  # total cost for plans
+        self.cards = [int(node.act_rows) for node in nodes]  # total rows for plans
+        self.costs = [self.extract_exec_time(node.exec_info) for node in nodes]  # total cost for plans
+
+        card_norm=Normalizer(min(self.cards),max(self.cards))
+        cost_norm=Normalizer(min(self.costs),max(self.costs))
 
         # normalize the labels (log of e) with min-max
         self.card_labels = torch.from_numpy(card_norm.normalize_labels(self.cards))
@@ -48,11 +51,32 @@ class PlanTreeDataset(Dataset):
         else:
             raise Exception('Unknown to_predict type')
 
-        idxs = list(json_df['id'])
+        idxs = list(range(1, len(nodes)+1))
 
         self.treeNodes = []  ## for mem collection
+
         self.collated_dicts = [self.js_node2dict(i, node) for i, node in
                                zip(idxs, nodes)]  # encode training data one by one
+
+    def extract_exec_time(self,time_str):
+        # 定义正则表达式，匹配时间字段和值
+        pattern = r'time:\s*(\d+(\.\d+)?)(µs|ms|s)'
+
+        # 在字符串中查找匹配的结果
+        match = re.search(pattern, time_str)
+
+        # 如果找到匹配项，则将时间转换为毫秒
+        if match:
+            time_value = float(match.group(1))
+            time_unit = match.group(3)
+            if time_unit == "µs":
+                time_value /= 1000
+            elif time_unit == "s":
+                time_value *= 1000
+            # time_value = round(time_value, 2)
+            return time_value
+        else:
+            return None
 
     def js_node2dict(self, idx, node):
         treeNode = self.traversePlan(node, idx, self.encoding)  # 这个node是根节点 这一步还做了encoding的工作
@@ -143,7 +167,7 @@ class PlanTreeDataset(Dataset):
 
     def traversePlan(self, plan, idx, encoding):  # bfs accumulate plan
 
-        nodeType = plan['Node Type']  # Gather, Seq Scan ...
+        nodeType = plan.id.split("_")[0]  # Gather, Seq Scan ...
         typeId = encoding.encode_type(
             nodeType)  # {'Gather': 0, 'Hash Join': 1, 'Seq Scan': 2, 'Hash': 3, 'Bitmap Heap Scan': 4, 'Bitmap Index
         # Scan': 5, 'Nested Loop': 6, 'Index Scan': 7, 'Merge Join': 8, 'Gather Merge': 9, 'Materialize': 10,
@@ -254,15 +278,64 @@ if __name__ == '__main__':
 
     operators_enc_dict = get_operator_enc_dict(operators)
 
+    min_max = {
+        't.id': [1.0, 2528312.0],
+        't.kind_id': [1.0, 7.0],
+        't.production_year': [1880.0, 2019.0],
+        'mc.id': [1.0, 2609129.0],
+        'mc.company_id': [1.0, 234997.0],
+        'mc.movie_id': [2.0, 2525745.0],
+        'mc.company_type_id': [1.0, 2.0],
+        'ci.id': [1.0, 36244344.0],
+        'ci.movie_id': [1.0, 2525975.0],
+        'ci.person_id': [1.0, 4061926.0],
+        'ci.role_id': [1.0, 11.0],
+        'mi.id': [1.0, 14835720.0],
+        'mi.movie_id': [1.0, 2526430.0],
+        'mi.info_type_id': [1.0, 110.0],
+        'mi_idx.id': [1.0, 1380035.0],
+        'mi_idx.movie_id': [2.0, 2525793.0],
+        'mi_idx.info_type_id': [99.0, 113.0],
+        'mk.id': [1.0, 4523930.0],
+        'mk.movie_id': [2.0, 2525971.0],
+        'mk.keyword_id': [1.0, 134170.0]
+    }
+
+    col2idx = {
+        't.id': 0,
+        't.kind_id': 1,
+        't.production_year': 2,
+        'mc.id': 3,
+        'mc.company_id': 4,
+        'mc.movie_id': 5,
+        'mc.company_type_id': 6,
+        'ci.id': 7,
+        'ci.movie_id': 8,
+        'ci.person_id': 9,
+        'ci.role_id': 10,
+        'mi.id': 11,
+        'mi.movie_id': 12,
+        'mi.info_type_id': 13,
+        'mi_idx.id': 14,
+        'mi_idx.movie_id': 15,
+        'mi_idx.info_type_id': 16,
+        'mk.id': 17,
+        'mk.movie_id': 18,
+        'mk.keyword_id': 19,
+        'NA': 20
+    }
+
+    encoding=Encoding(min_max,col2idx)
+
     # old
     data_path = "data/"
     hist_file = get_hist_file(data_path + 'histogram_string.csv')
-    cost_norm = Normalizer(-3.61192, 12.290855)
-    card_norm = Normalizer(1, 100)
+    # cost_norm = Normalizer(-3.61192, 12.290855)
+    # card_norm = Normalizer(1, 100)
     to_predict = 'cost'
 
     imdb_path = './imdb/'
     table_sample = get_job_table_sample(imdb_path + 'train')
 
-    train_ds = PlanTreeDataset(train_plans, None, operators_enc_dict, hist_file, card_norm, cost_norm, to_predict,
+    train_ds = PlanTreeDataset(train_plans, None, encoding, hist_file, to_predict,
                                table_sample)  # 改了train_cases

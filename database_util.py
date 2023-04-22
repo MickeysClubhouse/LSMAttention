@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import csv
 import torch
+from cost_learning import Operator
 
 ## bfs shld be enough
 def floyd_warshall_rewrite(adjacency_matrix):
@@ -245,51 +246,68 @@ def filterDict2Hist(hist_file, filterDict, encoding):
 
 
 
-def formatJoin(json_node):
-   
-    join = None
-    if 'Hash Cond' in json_node:
-        join = json_node['Hash Cond']
-    elif 'Join Filter' in json_node:
-        join = json_node['Join Filter']
-    ## TODO: index cond
-    elif 'Index Cond' in json_node and not json_node['Index Cond'][-2].isnumeric():
-        join = json_node['Index Cond']
-    
-    ## sometimes no alias, say t.id 
-    ## remove repeat (both way are the same)
-    if join is not None:
+# def formatJoin(json_node):
+#
+#     join = None
+#     if 'Hash Cond' in json_node:
+#         join = json_node['Hash Cond']
+#     elif 'Join Filter' in json_node:
+#         join = json_node['Join Filter']
+#     ## TODO: index cond
+#     elif 'Index Cond' in json_node and not json_node['Index Cond'][-2].isnumeric():
+#         join = json_node['Index Cond']
+#
+#     ## sometimes no alias, say t.id
+#     ## remove repeat (both way are the same)
+#     if join is not None:
+#
+#         twoCol = join[1:-1].split(' = ')
+#         twoCol = [json_node['Alias'] + '.' + col
+#                   if len(col.split('.')) == 1 else col for col in twoCol ]
+#         join = ' = '.join(sorted(twoCol))
+#
+#     return join
 
-        twoCol = join[1:-1].split(' = ')
-        twoCol = [json_node['Alias'] + '.' + col 
-                  if len(col.split('.')) == 1 else col for col in twoCol ] 
-        join = ' = '.join(sorted(twoCol))
-    
+def formatJoin(plan):
+    join=None
+    node_type= plan.id.split("_")[0]
+    if node_type=='HashJoin':
+        join=plan.op_info
+
+    elif node_type=="IndexHashJoin":
+        join = plan.op_info
     return join
     
-def formatFilter(plan):
-    alias = None
-    if 'Alias' in plan:
-        alias = plan['Alias']
-    else:
-        pl = plan
-        while 'parent' in pl:
-            pl = pl['parent']
-            if 'Alias' in pl:
-                alias = pl['Alias']
-                break
-    
+# def formatFilter(plan:str):#new
+#     alias = None
+#     if 'Alias' in plan:
+#         alias = plan['Alias']
+#     else:
+#         pl = plan
+#         while 'parent' in pl:
+#             pl = pl['parent']
+#             if 'Alias' in pl:
+#                 alias = pl['Alias']
+#                 break
+#
+#     filters = []
+#     if 'Filter' in plan:
+#         filters.append(plan['Filter'])
+#     if 'Index Cond' in plan and plan['Index Cond'][-2].isnumeric():
+#         filters.append(plan['Index Cond'])
+#     if 'Recheck Cond' in plan:
+#         filters.append(plan['Recheck Cond'])
+#
+#     return filters, alias
+
+def formatFilter(plan:Operator): #new
     filters = []
-    if 'Filter' in plan:
-        filters.append(plan['Filter'])
-    if 'Index Cond' in plan and plan['Index Cond'][-2].isnumeric():
-        filters.append(plan['Index Cond'])
-    if 'Recheck Cond' in plan:
-        filters.append(plan['Recheck Cond'])
-        
-    
-    
-    return filters, alias
+    node_type= plan.id.split("_")[0]
+
+    if node_type=="Selection":
+        filters.append(plan.op_info)
+
+    return filters,None
 
 class Encoding:
     def __init__(self, column_min_max_vals, 
