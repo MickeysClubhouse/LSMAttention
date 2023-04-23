@@ -2,10 +2,11 @@ import numpy as np
 import pandas as pd
 import csv
 import torch
+import re
 from cost_learning import Operator
 
 
-## bfs shld be enough
+# bfs shld be enough
 def floyd_warshall_rewrite(adjacency_matrix):
     (nrows, ncols) = adjacency_matrix.shape
     assert nrows == ncols
@@ -216,7 +217,7 @@ def filterDict2Hist(hist_file, filterDict, encoding):
         if col == 'NA':
             ress[i] = empty
             continue
-        bins = hist_file.loc[hist_file['table_column'] == col, 'bins'].item()
+        bins = hist_file.loc[hist_file['table_column'] == col, 'bins'].item()  # todo:sample
 
         opId = filterDict['opId'][0]
         op = encoding.idx2op[opId]
@@ -248,28 +249,6 @@ def filterDict2Hist(hist_file, filterDict, encoding):
     return ress
 
 
-# def formatJoin(json_node):
-#
-#     join = None
-#     if 'Hash Cond' in json_node:
-#         join = json_node['Hash Cond']
-#     elif 'Join Filter' in json_node:
-#         join = json_node['Join Filter']
-#     ## TODO: index cond
-#     elif 'Index Cond' in json_node and not json_node['Index Cond'][-2].isnumeric():
-#         join = json_node['Index Cond']
-#
-#     ## sometimes no alias, say t.id
-#     ## remove repeat (both way are the same)
-#     if join is not None:
-#
-#         twoCol = join[1:-1].split(' = ')
-#         twoCol = [json_node['Alias'] + '.' + col
-#                   if len(col.split('.')) == 1 else col for col in twoCol ]
-#         join = ' = '.join(sorted(twoCol))
-#
-#     return join
-
 def formatJoin(plan):
     join = None
     node_type = plan.id.split("_")[0]
@@ -281,34 +260,20 @@ def formatJoin(plan):
     return join
 
 
-# def formatFilter(plan:str):#new
-#     alias = None
-#     if 'Alias' in plan:
-#         alias = plan['Alias']
-#     else:
-#         pl = plan
-#         while 'parent' in pl:
-#             pl = pl['parent']
-#             if 'Alias' in pl:
-#                 alias = pl['Alias']
-#                 break
-#
-#     filters = []
-#     if 'Filter' in plan:
-#         filters.append(plan['Filter'])
-#     if 'Index Cond' in plan and plan['Index Cond'][-2].isnumeric():
-#         filters.append(plan['Index Cond'])
-#     if 'Recheck Cond' in plan:
-#         filters.append(plan['Recheck Cond'])
-#
-#     return filters, alias
-
 def formatFilter(plan: Operator):  # new
     filters = []
     node_type = plan.id.split("_")[0]
 
     if node_type == "Selection":
-        filters.append(plan.op_info)
+        if "ge" in plan.op_info:
+            # 定义正则表达式，用来匹配 ge() 和 le() 中间的内容
+            test = 'ge(imdb.title.episode_of_id, 16091), ge(imdb.title.season_nr, 1), le(imdb.title.episode_of_id, ' \
+                   '2417867), le(imdb.title.season_nr, 58), row_size: 198'
+            pattern = r'\b(ge|le)\((.*?)\)'
+
+            # 使用正则表达式进行匹配
+            ele = re.findall(pattern, test)
+            filters.append(ele)
 
     return filters, None
 
@@ -351,18 +316,18 @@ class Encoding:
                     'opId': [self.op2idx['NA']],
                     'val': [0.0]}
         res = {'colId': [], 'opId': [], 'val': []}
-        for filt in filters:
-            filt = ''.join(c for c in filt if c not in '()')
-            fs = filt.split(' AND ')
-            for f in fs:
-                #           print(filters)
-                col, op, num = f.split(' ')
-                column = alias + '.' + col
-                #            print(f)
+        for f in filters[0]:  # todo：可能会有问题
+            if f[0] == "ge":
+                op = "<"
+            elif f[0] == 'le':
+                op = ">"
+            tmp = f[1].replace('(', '').replace(')', '')
+            column, num = tmp.split(',')
+            column = column.replace("imdb.", '')
 
-                res['colId'].append(self.col2idx[column])
-                res['opId'].append(self.op2idx[op])
-                res['val'].append(self.normalize_val(column, float(num)))
+            res['colId'].append(self.col2idx[column])
+            res['opId'].append(self.op2idx[op])
+            res['val'].append(self.normalize_val(column, float(num)))
         return res
 
     def encode_join(self, join):

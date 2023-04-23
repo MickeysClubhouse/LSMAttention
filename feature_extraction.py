@@ -225,12 +225,13 @@ def node2feature(node, encoding, hist_file, table_sample):
     # type, join, filter123, mask123
     # 1, 1, 3x3 (9), 3
     # TODO: add sample (or so-called table)
+    MAX_FILTER_NUM = 5
     num_filter = len(node.filterDict['colId'])
-    pad = np.zeros((3, 3 - num_filter))
+    pad = np.zeros((3, MAX_FILTER_NUM - num_filter))
     filts = np.array(list(node.filterDict.values()))  # cols, ops, vals
     ## 3x3 -> 9, get back with reshape 3,3
     filts = np.concatenate((filts, pad), axis=1).flatten()
-    mask = np.zeros(3)
+    mask = np.zeros(MAX_FILTER_NUM)
     mask[:num_filter] = 1
     type_join = np.array([node.typeId, node.join])
 
@@ -238,7 +239,7 @@ def node2feature(node, encoding, hist_file, table_sample):
 
     # table, bitmap, 1 + 1000 bits
     table = np.array([node.table_id])
-    # if node.table_id == 0:
+    # if node.table_id == 0:todo:暂时不考虑bitmap
     sample = np.zeros(1000)
     # else:
     #     sample = table_sample[node.query_id][node.table]
@@ -282,8 +283,8 @@ if __name__ == '__main__':
         't.id': [1.0, 2528312.0],
         't.kind_id': [1.0, 7.0],
         't.production_year': [1880.0, 2019.0],
-        'mc.id': [1.0, 2609129.0],
-        'mc.company_id': [1.0, 234997.0],
+        'title.episode_of_id': [0.0, 2528186.0],
+        'title.season_nr': [0.0, 2013.0],
         'mc.movie_id': [2.0, 2525745.0],
         'mc.company_type_id': [1.0, 2.0],
         'ci.id': [1.0, 36244344.0],
@@ -305,8 +306,8 @@ if __name__ == '__main__':
         't.id': 0,
         't.kind_id': 1,
         't.production_year': 2,
-        'mc.id': 3,
-        'mc.company_id': 4,
+        'title.episode_of_id': 3,
+        'title.season_nr': 4,
         'mc.movie_id': 5,
         'mc.company_type_id': 6,
         'ci.id': 7,
