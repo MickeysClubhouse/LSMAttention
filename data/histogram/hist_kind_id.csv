@@ -1,0 +1,6 @@
+| Db_name | Table_name | Partition_name | Column_name   | Is_index | Bucket_id | Count   | Repeats | Lower_Bound      | Upper_Bound      | Ndv  |
+| imdb    | title      |                | kind_id       |        0 |         0 |  659257 |  659176 | 1                | 1                |    0 |
+| imdb    | title      |                | kind_id       |        0 |         1 |  746484 |   87216 | 2                | 2                |    0 |
+| imdb    | title      |                | kind_id       |        0 |         2 |  843192 |   96696 | 3                | 3                |    0 |
+| imdb    | title      |                | kind_id       |        0 |         3 |  993626 |  150416 | 4                | 4                |    0 |
+| imdb    | title      |                | kind_id       |        0 |         4 | 2528312 | 1521856 | 6                | 7                |    0 |

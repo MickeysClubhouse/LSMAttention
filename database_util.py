@@ -73,7 +73,7 @@ def get_job_table_sample(workload_file_name, num_materialized_samples=1000):
 
 def get_hist_file(hist_path, bin_number=50):
     hist_file = pd.read_csv(hist_path)
-    for i in range(len(hist_file)):
+    for i in range(len(hist_file)):  # 建立过table.column的数量
         freq = hist_file['freq'][i]
         freq_np = np.frombuffer(bytes.fromhex(freq), dtype=np.float)
         hist_file['freq'][i] = freq_np
