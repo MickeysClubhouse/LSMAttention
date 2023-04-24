@@ -183,8 +183,8 @@ class PlanTreeDataset(Dataset):
         self.treeNodes.append(root)
 
         if nodeType in ["IndexRangeScan", "TableRowIDScan", "TableFullScan"]:
-            root.table = plan.acc_obj
-            root.table_id = encoding.encode_table(plan['Relation Name'])
+            root.table = "title"
+            root.table_id = encoding.encode_table('title')
         root.query_id = idx
 
         root.feature = node2feature(root, encoding, self.hist_file, self.table_sample)  # 'encoding' is the dict
@@ -331,6 +331,7 @@ if __name__ == '__main__':
     # old
     data_path = "data/"
     hist_file = get_hist_file(data_path + 'histogram_string.csv')
+
     # cost_norm = Normalizer(-3.61192, 12.290855)
     # card_norm = Normalizer(1, 100)
     to_predict = 'cost'
@@ -340,3 +341,5 @@ if __name__ == '__main__':
 
     train_ds = PlanTreeDataset(train_plans, None, encoding, hist_file, to_predict,
                                table_sample)  # 改了train_cases
+
+    print("hello")

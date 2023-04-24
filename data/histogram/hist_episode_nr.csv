@@ -1,0 +1,21 @@
+| Db_name | Table_name | Partition_name | Column_name   | Is_index | Bucket_id | Count   | Repeats | Lower_Bound      | Upper_Bound      | Ndv  |
+| imdb    | title      |                | episode_nr    |        0 |         0 | 1434184 | 1434008 | 0                | 0                |    0 |
+| imdb    | title      |                | episode_nr    |        0 |         1 | 1497392 |   63200 | 1                | 1                |    0 |
+| imdb    | title      |                | episode_nr    |        0 |         2 | 1567553 |   70152 | 2                | 2                |    0 |
+| imdb    | title      |                | episode_nr    |        0 |         3 | 1625704 |   58144 | 3                | 3                |    0 |
+| imdb    | title      |                | episode_nr    |        0 |         4 | 1688280 |   62568 | 4                | 4                |    0 |
+| imdb    | title      |                | episode_nr    |        0 |         5 | 1742639 |   54352 | 5                | 5                |    0 |
+| imdb    | title      |                | episode_nr    |        0 |         6 | 1826073 |   34128 | 6                | 7                |    0 |
+| imdb    | title      |                | episode_nr    |        0 |         7 | 1901290 |   36024 | 8                | 9                |    0 |
+| imdb    | title      |                | episode_nr    |        0 |         8 | 1965130 |   28440 | 10               | 11               |    0 |
+| imdb    | title      |                | episode_nr    |        0 |         9 | 2023281 |   25280 | 12               | 13               |    0 |
+| imdb    | title      |                | episode_nr    |        0 |        10 | 2075112 |   12640 | 14               | 16               |    0 |
+| imdb    | title      |                | episode_nr    |        0 |        11 | 2128838 |    8216 | 17               | 20               |    0 |
+| imdb    | title      |                | episode_nr    |        0 |        12 | 2180669 |   12640 | 21               | 24               |    0 |
+| imdb    | title      |                | episode_nr    |        0 |        13 | 2234395 |    5688 | 25               | 32               |    0 |
+| imdb    | title      |                | episode_nr    |        0 |        14 | 2285594 |    1896 | 33               | 44               |    0 |
+| imdb    | title      |                | episode_nr    |        0 |        15 | 2337424 |    1896 | 45               | 65               |    0 |
+| imdb    | title      |                | episode_nr    |        0 |        16 | 2389254 |    1896 | 67               | 114              |    0 |
+| imdb    | title      |                | episode_nr    |        0 |        17 | 2439821 |     170 | 115              | 226              |    0 |
+| imdb    | title      |                | episode_nr    |        0 |        18 | 2490387 |     170 | 240              | 3878             |    0 |
+| imdb    | title      |                | episode_nr    |        0 |        19 | 2528312 |     170 | 3950             | 15283            |    0 |

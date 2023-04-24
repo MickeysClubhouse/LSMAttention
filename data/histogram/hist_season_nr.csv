@@ -1,0 +1,10 @@
+| Db_name | Table_name | Partition_name | Column_name   | Is_index | Bucket_id | Count   | Repeats | Lower_Bound      | Upper_Bound      | Ndv  |
+| imdb    | title      |                | season_nr     |        0 |         0 | 1432920 | 1432744 | 0                | 0                |    0 |
+| imdb    | title      |                | season_nr     |        0 |         1 | 2002423 |  569432 | 1                | 1                |    0 |
+| imdb    | title      |                | season_nr     |        0 |         2 | 2161706 |  159264 | 2                | 2                |    0 |
+| imdb    | title      |                | season_nr     |        0 |         3 | 2251461 |   89744 | 3                | 3                |    0 |
+| imdb    | title      |                | season_nr     |        0 |         4 | 2303924 |   52456 | 4                | 4                |    0 |
+| imdb    | title      |                | season_nr     |        0 |         5 | 2377877 |   32864 | 5                | 6                |    0 |
+| imdb    | title      |                | season_nr     |        0 |         6 | 2429707 |   16432 | 7                | 9                |    0 |
+| imdb    | title      |                | season_nr     |        0 |         7 | 2480906 |    6320 | 10               | 16               |    0 |
+| imdb    | title      |                | season_nr     |        0 |         8 | 2528312 |    1264 | 17               | 62               |    0 |
