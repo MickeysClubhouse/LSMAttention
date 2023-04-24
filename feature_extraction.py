@@ -141,7 +141,6 @@ class PlanTreeDataset(Dataset):
             'features': torch.FloatTensor(features),
             'heights': torch.LongTensor(heights),
             'adjacency_list': torch.LongTensor(np.array(adj_list)),
-
         }
 
     def topo_sort(self, root_node):
@@ -174,7 +173,7 @@ class PlanTreeDataset(Dataset):
         # 'BitmapAnd': 11, 'Sort': 12}
         card = None  # plan['Actual Rows']  may cause bad effect
         filters, alias = formatFilter(plan)
-        join = formatJoin(plan)  # join condition
+        join = formatJoin(plan)  # join condition todo：好像不太对
         joinId = encoding.encode_join(join)  # each join condition is in a list
         filters_encoded = encoding.encode_filters(filters, alias)
         #  def __init__(self, nodeType, typeId, filt, card, join, join_str, filterDict):
@@ -229,7 +228,7 @@ def node2feature(node, encoding, hist_file, table_sample):
     num_filter = len(node.filterDict['colId'])
     pad = np.zeros((3, MAX_FILTER_NUM - num_filter))
     filts = np.array(list(node.filterDict.values()))  # cols, ops, vals
-    ## 3x3 -> 9, get back with reshape 3,3
+    ## 3x5 -> 15, get back with reshape 3,5
     filts = np.concatenate((filts, pad), axis=1).flatten()
     mask = np.zeros(MAX_FILTER_NUM)
     mask[:num_filter] = 1
@@ -330,8 +329,9 @@ if __name__ == '__main__':
 
     # old
     data_path = "data/"
-    hist_file = get_hist_file(data_path + 'histogram_string.csv')
+    #hist_file = get_hist_file(data_path + 'histogram_string.csv')
 
+    hist_file=get_histograms()
     # cost_norm = Normalizer(-3.61192, 12.290855)
     # card_norm = Normalizer(1, 100)
     to_predict = 'cost'

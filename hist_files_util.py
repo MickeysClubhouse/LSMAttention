@@ -61,12 +61,18 @@ def get_bins(filename):
 
 
 def get_histograms():
-    hists = []
+    columns = ['Table', 'Column', 'Bins']
+
+    # 创建空的 DataFrame
+    hists = pd.DataFrame(columns=columns)
+
     # 遍历文件夹
     for root, dirs, files in os.walk("data/histogram"):
         for filename in files:
             # 处理文件
-            hists.append(get_bins(os.path.join(root, filename)))
+            new_data = {'Table': 'title', 'Column': filename.replace('hist_', '').replace('.csv', ''),
+                        'Bins': get_bins(os.path.join(root, filename))}
+            hists = hists.append(new_data, ignore_index=True)
 
     return hists
 

@@ -209,7 +209,7 @@ def collator(small_set):
 
 
 def filterDict2Hist(hist_file, filterDict, encoding):
-    buckets = len(hist_file['bins'][0])
+    buckets = len(hist_file['Bins'][0])
     empty = np.zeros(buckets - 1)
     ress = np.zeros((5, buckets - 1))
     for i in range(len(filterDict['colId'])):
@@ -218,8 +218,8 @@ def filterDict2Hist(hist_file, filterDict, encoding):
         if col == 'NA':
             ress[i] = empty
             continue
-       # bins = hist_file.loc[hist_file['table_column'] == col, 'bins'].item()  # todo:sample
-        bins=get_bins(col.replace("title.",''))
+        bins = hist_file.loc[hist_file['Column'] == col.replace("title.", ''), 'Bins'].item()  # todo:sample
+        # bins = get_bins(col.replace("title.", ''))
 
         opId = filterDict['opId'][0]
         op = encoding.idx2op[opId]
