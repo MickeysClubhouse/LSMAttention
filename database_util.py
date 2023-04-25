@@ -255,10 +255,16 @@ def formatJoin(plan):
     join = None
     node_type = plan.id.split("_")[0]
     if node_type == 'HashJoin':
-        join = plan.op_info
+        opinfo = plan.op_info
+        match = re.search(r'eq\(([^)]+)\)', opinfo)
+        if match:
+            join = match.group(1).replace("imdb.",'')
 
     elif node_type == "IndexHashJoin":
-        join = plan.op_info
+        opinfo = plan.op_info
+        match = re.search(r'eq\(([^)]+)\)', opinfo)
+        if match:
+            join = match.group(1).replace("imdb.",'')
     return join
 
 
