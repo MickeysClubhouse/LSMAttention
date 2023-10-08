@@ -55,6 +55,8 @@ class PlanTreeDataset(Dataset):
 
         self.treeNodes = []  ## for mem collection
 
+        self.cop_nodes = []
+
         self.collated_dicts = [self.js_node2dict(i, node) for i, node in
                                zip(idxs, nodes)]  # encode training data one by one
 
@@ -179,6 +181,9 @@ class PlanTreeDataset(Dataset):
         #  def __init__(self, nodeType, typeId, filt, card, join, join_str, filterDict):
         root = TreeNode(nodeType, typeId, filters, card, joinId, join, filters_encoded)  # features of root node
 
+        if nodeType=="IndexReader":
+            self.cop_nodes.append(root)
+
         self.treeNodes.append(root)
 
         if nodeType in ["IndexRangeScan", "TableRowIDScan", "TableFullScan"]:
@@ -262,8 +267,8 @@ if __name__ == '__main__':
     operators = ["Projection", "Selection", "Sort", "HashAgg", "HashJoin", "TableScan", "IndexScan", "TableReader",
                  "IndexReader", "IndexLookUp", "IndexHashJoin"]
 
-    train_json_file = 'data/train_plans_serial.json'  # serial
-    test_json_file = 'data/train_plans_serial.json'
+    train_json_file = 'data/train_plans.json'  # serial
+    test_json_file = 'data/train_plans.json'
     train_plans, test_plans = [], []
 
     with open(train_json_file, 'r') as f:
@@ -329,11 +334,8 @@ if __name__ == '__main__':
 
     # old
     data_path = "data/"
-    #hist_file = get_hist_file(data_path + 'histogram_string.csv')
 
-    hist_file=get_histograms()
-    # cost_norm = Normalizer(-3.61192, 12.290855)
-    # card_norm = Normalizer(1, 100)
+    hist_file = get_histograms()
     to_predict = 'cost'
 
     imdb_path = './imdb/'
