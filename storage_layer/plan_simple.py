@@ -1,3 +1,5 @@
+import numpy as np
+import pandas as pd
 class Operator:
     def __init__(self, id, est_rows, act_rows, task, acc_obj, exec_info, op_info, mem, disk):
         self.id = id
@@ -132,14 +134,12 @@ class Operator:
             child.debug_print(indent + "  ")
 
 
-    def get_scan_range(self):
-        range_scan=self.children
-        assert "TableRangeScan" in range_scan.id
 
 
 
 class Plan:
     def __init__(self, query, root):
+        self.file_bitmap = None
         self.query = query
         self.root = root
 
@@ -153,6 +153,39 @@ class Plan:
 
     def tidb_est_cost(self):
         return self.root.tidb_est_cost()
+
+    def get_bitmap(self, file_info):
+        range_scan=self.root.children[0]
+        assert "TableRangeScan" in range_scan.id
+        rang=range_scan.op_info.split('[')[1].split(']')[0].split(',')
+        l=int(rang[0])
+        r=int(rang[1])
+
+        n_numbers = [0]+file_info["r"].tolist()
+        n=len(n_numbers)
+
+        bucket_ranges = [(n_numbers[i], n_numbers[i + 1]) for i in range(n - 1)]
+
+        # 创建一个列表来存储每个桶的值
+        bucket_values = []
+
+        # 根据l和r为每个桶赋值
+        for bucket in bucket_ranges:
+            bucket_width=bucket[1]-bucket[0]
+            if bucket[0] >= r or bucket[1] <= l:
+                bucket_values.append(0)  # 不包含在范围内为0
+            elif r > bucket[0] > l: #右边界
+                bucket_values.append(min(1.,(r-bucket[0])/bucket_width))  # 包含在范围内为1
+            elif r > bucket[1] > l:
+                bucket_values.append(min(1.,(bucket[1]-l) /bucket_width))
+            elif bucket[0]<l and bucket[1]>r:
+                bucket_values.append((r - l) / bucket_width)
+            else:
+                bucket_values.append(1)
+        print('a')
+
+
+
 
     @staticmethod
     def format_op_id(id):
@@ -184,6 +217,7 @@ class Plan:
                         break
                     j -= 1
         return Plan(query, operators[0])
+
 
 
 if __name__ == '__main__':
