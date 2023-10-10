@@ -5,6 +5,7 @@ from plan_simple import Plan
 from sklearn import preprocessing
 import pandas as pd
 
+
 class MakeTrainingData(Dataset):
     def __init__(self, file_cnt):  # initialize
         self.file_cnt = file_cnt  # number of sst files
@@ -27,7 +28,7 @@ if __name__ == '__main__':
     operators = ["Selection", "Sort", "HashAgg", "HashJoin", "TableScan", "IndexScan", "TableReader",
                  "IndexReader", "IndexLookUp", "IndexHashJoin"]
 
-    title_regions=[[],[],[],[],[],[]]
+    title_regions = [[], [], [], [], [], []]
     train_json_file = '../data_new/train_plans_scan_pk.json'  # index scan only
 
     train_plans = []
@@ -41,9 +42,5 @@ if __name__ == '__main__':
     operators_enc_dict = get_operator_enc_dict(operators)
     # 对每个scan算子计算模型输入
     for reader_op in train_plans:
-        df=pd.read_csv('../data_new/file_info.csv', header=0)
-        file_bitmap=reader_op.get_bitmap(df)
-
-
-
-
+        df = pd.read_csv('../data_new/file_info.csv', header=0)
+        file_bitmap = reader_op.get_bitmap(df)
